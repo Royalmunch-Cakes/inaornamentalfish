@@ -6,6 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
+  summarizeLocations,
+  type LocationSummary,
+} from "@/lib/location-pricing";
+import {
   Upload,
   Download,
   Trash2,
@@ -20,17 +24,13 @@ import {
   useConfirmDialog,
 } from "@/components/ui/confirm-dialog";
 
-interface LocationGroup {
-  location: string;
-  count: number;
-}
-
 export default function LocationPricingClient({
   initialLocations,
 }: {
-  initialLocations: LocationGroup[];
+  initialLocations: LocationSummary[];
 }) {
-  const [locations, setLocations] = useState<LocationGroup[]>(initialLocations);
+  const [locations, setLocations] =
+    useState<LocationSummary[]>(initialLocations);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
@@ -45,18 +45,9 @@ export default function LocationPricingClient({
     try {
       const res = await fetch("/api/admin/location-pricing");
       if (res.ok) {
-        const data = await res.json();
-        // Group by location
-        const grouped: Record<string, number> = {};
-        for (const row of data) {
-          grouped[row.location] = (grouped[row.location] || 0) + 1;
-        }
-        setLocations(
-          Object.entries(grouped).map(([location, count]) => ({
-            location,
-            count,
-          })),
-        );
+        setLocations(summarizeLocations(await res.json()));
+      } else {
+        toast.error("Failed to load pricing data");
       }
     } catch {
       toast.error("Failed to load pricing data");
@@ -169,7 +160,7 @@ export default function LocationPricingClient({
     });
   }
 
-  const totalEntries = locations.reduce((sum, l) => sum + l.count, 0);
+  const totalEntries = locations.reduce((sum, l) => sum + l.entries, 0);
 
   return (
     <div>
@@ -317,8 +308,17 @@ export default function LocationPricingClient({
                               <h3 className="font-semibold text-slate-800 truncate">
                                 {loc.location}
                               </h3>
+                              {/* Species is what custom-pricing auto-fill
+                                  brings in (one line per species); entries
+                                  also count each extra size. */}
                               <p className="text-xs text-slate-500">
-                                {loc.count} species priced
+                                {loc.species} species priced
+                                {loc.entries !== loc.species && (
+                                  <span className="text-slate-400">
+                                    {" "}
+                                    · {loc.entries} size prices
+                                  </span>
+                                )}
                               </p>
                             </div>
                           )}
