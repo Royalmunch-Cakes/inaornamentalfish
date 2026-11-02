@@ -259,7 +259,9 @@ deploy/                         # Nginx, systemd and the deployment runbook
 
 ### Prerequisites
 
-- Node.js 20.9+ (required by Next.js 16)
+- Node.js 24 LTS (pinned in `.nvmrc`; CI and the server use it too). Node 22
+  also works. Node 20 does not: the test runner needs glob support, and Node 20
+  is end-of-life.
 - A Supabase project
 
 ### Environment Variables

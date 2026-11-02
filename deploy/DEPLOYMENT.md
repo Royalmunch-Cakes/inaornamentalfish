@@ -20,8 +20,8 @@ Files in this folder:
 ```bash
 sudo apt update
 sudo apt install -y nginx php8.2-fpm certbot python3-certbot-nginx
-# Node 20 LTS (for Next.js)
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+# Node 24 LTS (matches .nvmrc and CI; Node 20 reached end-of-life in April 2026)
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt install -y nodejs
 sudo systemctl enable --now nginx php8.2-fpm
 sudo ufw allow 'Nginx Full'   # opens 80 + 443
@@ -220,6 +220,17 @@ price-list link, and confirm the emails arrive.
   (section 7) *before* deploying code that depends on them.
 
 ### One-time server setup
+
+**First, make sure the server runs Node 24**, the same version CI builds with
+(`.nvmrc`). Check with `node -v`. A server installed from an earlier version of
+this runbook has Node 20, which is end-of-life. To upgrade:
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
+sudo apt install -y nodejs
+node -v                                   # v24.x
+sudo systemctl restart inaornamentalfish-next
+```
 
 The existing systemd unit and Nginx config keep working unchanged:
 `/var/www/ina-app` becomes a link to the current release.
