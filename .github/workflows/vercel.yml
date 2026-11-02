@@ -5,7 +5,7 @@ name: Vercel
 #
 # • Every pull request → a PREVIEW deployment; the URL is posted on the PR.
 # • Production on Vercel → MANUAL only (Actions → Vercel → Run workflow →
-#   target: production), gated by the "vercel-production" environment.
+#   target: production), gated by the "production" environment.
 #   The live site normally runs on the Nginx server (deploy.yml); keep
 #   inaornamentalfish.com pointed at ONE of the two.
 #
@@ -121,9 +121,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     # Add required reviewers to this environment so a production deploy waits
-    # for approval (Settings → Environments → vercel-production).
+    # for approval (Settings → Environments → production).
     environment:
-      name: vercel-production
+      name: production
       url: ${{ steps.deploy.outputs.url }}
     concurrency:
       group: vercel-production
