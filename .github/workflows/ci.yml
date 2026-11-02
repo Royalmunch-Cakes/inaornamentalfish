@@ -77,19 +77,30 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - run: npm ci --no-audit --no-fund
-
-      - name: Check build secrets are configured
+      # Without Supabase credentials the build can't pre-render its data
+      # pages, so skip it with a visible notice instead of failing: this
+      # covers repos where the secrets aren't set up yet and Dependabot PRs,
+      # which never receive repository secrets. Lint, types and tests above
+      # still gate every change.
+      - name: Check build secrets
+        id: creds
         run: |
-          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-            echo "::error::Add NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY as repository secrets (Settings → Secrets and variables → Actions)."
-            exit 1
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::notice::Production build skipped: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY aren't available to this run (add them under Settings → Secrets and variables → Actions; Dependabot PRs never get them)."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/cache@v4
+      - if: steps.creds.outputs.ok == 'true'
+        run: npm ci --no-audit --no-fund
+
+      - if: steps.creds.outputs.ok == 'true'
+        uses: actions/cache@v4
         with:
           path: .next/cache
           key: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
           restore-keys: next-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
 
-      - run: npm run build
+      - if: steps.creds.outputs.ok == 'true'
+        run: npm run build
