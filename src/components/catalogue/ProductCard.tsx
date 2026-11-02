@@ -180,15 +180,12 @@ export default function ProductCard({ product }: ProductCardProps) {
               </Button>
             ))}
           </div>
+          {/* Out-of-stock fish can still be requested: stock often returns
+              before shipping, and the team confirms availability. */}
           <Button
             onClick={handleAddToCart}
-            disabled={product.availability === "out_of_stock"}
             className={`w-full rounded-xl ${
-              added
-                ? "bg-emerald-600 text-white"
-                : product.availability === "out_of_stock"
-                  ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                  : ""
+              added ? "bg-emerald-600 text-white" : ""
             }`}
           >
             {added ? "Added" : "Add to Quote"}

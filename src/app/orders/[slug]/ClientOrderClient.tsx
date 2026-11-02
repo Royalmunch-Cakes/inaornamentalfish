@@ -92,12 +92,9 @@ export default function ClientOrderClient({
         };
         if (draft.groups?.length) {
           // The list may have changed since the draft was saved: drop species
-          // that were removed or have gone out of stock, and say so.
-          const orderable = new Set(
-            priceList.items
-              .filter((pi) => pi.species?.availability !== "out_of_stock")
-              .map((pi) => pi.species_id),
-          );
+          // that were removed from it, and say so. (Out-of-stock species stay
+          // orderable, so they're kept.)
+          const orderable = new Set(priceList.items.map((pi) => pi.species_id));
           let dropped = 0;
           const groupsNow = draft.groups.map((g) => ({
             ...g,
@@ -111,7 +108,7 @@ export default function ClientOrderClient({
           }));
           if (dropped > 0) {
             toast.info(
-              `${dropped} saved item${dropped === 1 ? " is" : "s are"} no longer available and ${dropped === 1 ? "was" : "were"} removed from your draft.`,
+              `${dropped} saved item${dropped === 1 ? " is" : "s are"} no longer on your price list and ${dropped === 1 ? "was" : "were"} removed from your draft.`,
             );
           }
           setGroups(groupsNow);
@@ -805,12 +802,20 @@ export default function ClientOrderClient({
                       </span>
                     </div>
 
-                    {/* Quantity controls — a disabled fieldset disables every
-                        button/input inside it for unavailable species. */}
+                    {/* Out-of-stock fish stay orderable: stock often returns
+                        before the order ships, and the team confirms
+                        availability when reviewing it. */}
+                    {unavailable && (
+                      <p className="text-[11px] leading-snug text-slate-600 bg-slate-50 rounded-md px-2 py-1.5">
+                        Currently out of stock. You can still order it and
+                        we&apos;ll confirm availability before shipping.
+                      </p>
+                    )}
+
+                    {/* Quantity controls */}
                     <fieldset
-                      disabled={unavailable}
                       aria-label={`Quantity for ${sp.common_name}`}
-                      className="space-y-2 min-w-0 disabled:opacity-40"
+                      className="space-y-2 min-w-0"
                     >
                     {/* Quick box buttons */}
                     <div className="flex gap-1.5">

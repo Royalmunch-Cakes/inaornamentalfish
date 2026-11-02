@@ -169,12 +169,11 @@ export async function POST(request: NextRequest) {
       for (const it of g.items) {
         const id = str(it.species_id, 100);
         const entry = list.items.get(id);
+        // Only species missing from the list are refused. Out-of-stock fish
+        // are deliberately orderable: stock often returns before fulfilment,
+        // and the team confirms availability when reviewing the order.
         if (!entry) {
           problems.push(str(it.species_name, 100) || "an item");
-          continue;
-        }
-        if (entry.availability === "out_of_stock") {
-          problems.push(`${entry.species_name} (currently unavailable)`);
           continue;
         }
         lines.push({
@@ -239,12 +238,9 @@ export async function POST(request: NextRequest) {
       const lines: ResolvedLine[] = [];
       for (const it of g.items) {
         const sp = byRef.get(str(it.species_id, 200));
+        // Unknown species are refused; out-of-stock ones are allowed (see above).
         if (!sp) {
           problems.push(str(it.species_name, 100) || "an item");
-          continue;
-        }
-        if (sp.availability === "out_of_stock") {
-          problems.push(`${sp.common_name} (currently unavailable)`);
           continue;
         }
         // Keep the customer's size only if it's one this species comes in.

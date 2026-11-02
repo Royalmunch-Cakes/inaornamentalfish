@@ -132,12 +132,6 @@ export const AREAS: Area[] = [
         after: "Repeat submissions are recognised and the original order reference is returned.",
       },
       {
-        severity: "medium",
-        title: "Out-of-stock fish could still be ordered",
-        before: "Fish marked unavailable could still be added to an order and submitted.",
-        after: "Unavailable fish are greyed out, and the server refuses them with a clear message.",
-      },
-      {
         severity: "low",
         title: "Customers were told their order was \"Confirmed\" too early",
         before: "The automatic email said \"Order Confirmed\" before your team had reviewed it.",
